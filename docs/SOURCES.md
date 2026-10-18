@@ -40,11 +40,13 @@ Boxの公式ページは`jev-preview` / `jev-1.14.0`を明示。固定モデル�
 - [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook): ウィンドウ破棄通知、out-of-context配信、メッセージループの条件。登録ウィンドウの寿命管理へ反映。
 - [UI Automation Threading Issues](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/ui-automation-threading-issues): UIA呼出をGUIスレッドから分離する根拠。専用MTAと待機境界の設計へ反映。
 - [Value Control Pattern](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-value-control-pattern): `ValuePattern`と読み取り専用の条件。入力全文を1操作で設定し、値を読み戻せない場合は成功を推測しない。
+- [TextPattern.IsReadOnlyAttribute](https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.textpattern.isreadonlyattribute?view=netframework-4.8.1): ValuePatternがないリッチエディターの本文も対象にする。読み取り専用が明示trueのときだけ本文配下を観察し、混在・不明・編集可能な本文を教示の目印にしない。
+- [PowerShellの文字コード](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_character_encoding?view=powershell-5.1): 日本語を含むWindows PowerShell 5.1スクリプトのためにUTF-8 BOMを使用する。
 
 ## 今回の契約確認と検証の区別
 
 [公式契約レビュー](JEV_CONTRACT_REVIEW.md)に、質問の独立性、Boxの不在・複数、画像最小辺280、ヘッダー、モデル、ローカル事前検査の限界と模擬テストを記載した。Imagesのメタデータ除去・EXIF方向の扱いも、現在画像と画面座標の対応を維持する際の前提である。
 
-今回のNodeテストは47件で、provider/coreの模擬契約はそのうち44件。純C# 98件とMicrosoft net48参照によるLinuxクロスコンパイルは、UIA・キーフック・マイク・DPIの実測ではない。新しいWindows CIは設定追加のみで実行待ち。[Windows実機チェック表](WINDOWS_CHECKS.md)の項目は今回全て未実施。
+今回のNodeテストは47件で、provider/coreの模擬契約はそのうち44件。純C# 98件とMicrosoft net48参照によるLinuxクロスコンパイルに加え、[Windows CI](https://github.com/resume-rei/jev-teach-navigator/actions/runs/39168963545)での実ビルド・自己テストも成功した。これらはUIA・キーフック・マイク・DPIの実測ではない。[Windows実機チェック表](WINDOWS_CHECKS.md)の対話操作は今回全て未実施。
 
 この記録は公開資料の確認とコード契約の検証結果であり、モデル推論や一般アプリの動作確認結果ではない。実API・課金・実データの外部送信が必要になった時点で利用者の確認を受ける。

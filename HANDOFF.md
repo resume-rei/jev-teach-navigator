@@ -38,11 +38,17 @@
 
 Nodeの通常サンドボックス実行ではランタイム由来のネイティブアサーションが起きたため、同じローカルの架空データテストを許可された環境で再実行し、上記47件を確認した。実APIへの通信を行ったものではない。保存・HTTPテストはOSの一時フォルダーを使用した。
 
-純C#テストは実際のrunner・意味スキル・ワーカーをコンパイルし、模擬デスクトップ等で検証する。一般ウィンドウへの入力やマイク使用は行わない。新しいWindows CI設定も追加したが、今回のCI実行結果はまだない。
+純C#テストは実際のrunner・意味スキル・ワーカーをコンパイルし、模擬デスクトップ等で検証する。一般ウィンドウへの入力やマイク使用は行わない。
+
+### Windows CIで追加確認した結果
+
+コードcommit `4b381f2cba37ec4349ace2d0068c990394d21c06`の[CI実行39168963545](https://github.com/resume-rei/jev-teach-navigator/actions/runs/39168963545)が成功した。Windows Server 2022標準runnerで、`windows/build.ps1 -SelfTest`から.NET Frameworkコンパイラーを実行し、GUI用exeとテスト用exeをビルドした。ログでrunner63件・semantic27件・worker8件と従来の自己チェックの合格、Node47件・静的確認の成功を確認した。
+
+これはWindows上の実コンパイル・自己テストの証拠である。GUIを起動して一般アプリを操作した検証ではなく、UIAプロバイダー・物理Enter・IME・DPIは未確認のまま。ビルドスクリプトは日本語をWindows PowerShell 5.1で正しく読むためUTF-8 BOMとし、C#ソースのcodepageを65001へ固定した。
 
 ## 今回未実施
 
-- Windows上の `./windows/build.ps1 -SelfTest`とGUI起動。
+- Windows利用者の対話セッションでのGUI起動（ビルド・自己テストは上記CIで確認済み）。
 - 新しい登録・教示・保存・再選択から一般アプリで最後まで進む実操作。
 - 物理Enter長押し・キー注入・実IME変換、Alt+Tab・外部Esc・フォーカス・取消のOS上のイベント順。
 - 実UIAプロバイダーの停止、ウィンドウ破棄通知、再起動、ダイアログ、権限差、UAC。

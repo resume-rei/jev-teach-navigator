@@ -34,8 +34,8 @@ Windows全体で、人が横にいて操作を教え、その後は案内して�
 - 保存は追記版管理。未完成スキルは案内せず、開始前に表示内容と現在の保存版を確認します。実行時入力は全文を表示し、欄消去も明示指定します。旧Web v1・旧ラボの教示証拠は保持し、移行は要確認下書きです。
 - Web版は架空画面の教示・版保存・語句一致選択・DOM案内を持つ別試作です。Windowsのスキル選択も現在は語句一致で、Jevの実推論ではありません。
 - Jev/生成モデルのアダプターと単発検証CLIはありますが、通常のネイティブ案内への画像API・生成モデル接続、実API品質評価は未実施です。
-- 今回はLinuxでNode 47件、静的確認11モジュール、純C# 98件（runner 63 / semantic 27 / worker 8）合格、Microsoft net48参照で全Windowsソースのクロスコンパイル成功。Windows CI設定は追加済みで実行待ちです。
-- 今回のWindows `build.ps1`、実UIA、教示から一般アプリの実操作、物理Enter・IME・DPI・マイクは未確認。以前の2つの専用練習アプリの5手順・8操作成功は旧実機履歴で、今回再実行した結果ではありません。
+- 今回はLinuxでNode 47件、静的確認11モジュール、純C# 98件（runner 63 / semantic 27 / worker 8）合格、Microsoft net48参照で全Windowsソースのクロスコンパイル成功。[Windows Server 2022のCI](https://github.com/resume-rei/jev-teach-navigator/actions/runs/39168963545)でも `build.ps1 -SelfTest`とNodeテストが成功しました。
+- 今回のGUI、実UIA、教示から一般アプリの実操作、物理Enter・IME・DPI・マイクは未確認。以前の2つの専用練習アプリの5手順・8操作成功は旧実機履歴で、今回再実行した結果ではありません。
 
 ## 優先して改良すること
 

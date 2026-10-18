@@ -6,7 +6,7 @@ Windows上で人が操作の意味を教え、保存したスキルを選び、�
 
 現在の一般アプリ経路は、利用者が登録したウィンドウ内でUI Automation（UIA）の `InvokePattern` / `ValuePattern`を提供する対象に限ります。アプリ切替も独立した1操作として提示します。UIAで対象を一意に確認できなければ保留し、過去座標の再生や画像APIへの自動切替はしません。
 
-**今回の変更はLinux上の自動テストとWindows向けクロスコンパイルまで確認しました。新しい教示・保存・一般アプリ案内、実UIA、物理Enter、IMEのWindows実機確認は未実施です。** 以前の専用練習アプリでの実機成功は、今回の一般アプリ対応の成功証拠とは区別しています。
+**今回の変更はLinux上の自動テストとWindows向けクロスコンパイルに加え、Windows CIでの実ビルド・自己テストまで確認しました。新しい教示・保存・一般アプリ案内、実UIA、物理Enter、IMEのWindows実機確認は未実施です。** 以前の専用練習アプリでの実機成功は、今回の一般アプリ対応の成功証拠とは区別しています。
 
 最終目標にはデスクトップ、エクスプローラー、ダイアログ、アプリ起動、スクロールなどを含みます。その全体対応、キーボードだけによる教示、生成モデルによる教示整理、画像での対象再特定は未完成です。
 
@@ -74,14 +74,14 @@ Windows x64 / .NET Framework 4.xを使用します。リポジトリのフォル
 | `npm run check` | 11 JavaScriptモジュールほかの静的確認が成功 |
 | `sh scripts/test-windows-core.sh` | 純C# 98件合格（runner 63 / semantic 27 / worker 8）。実UIAを使用しない |
 | Windows向けコンパイル | LinuxでMicrosoft .NET Framework 4.8参照アセンブリを使ったクロスコンパイル成功 |
-| Windows実行 | 今回の `./windows/build.ps1 -SelfTest`、GUI起動、教示から実操作、物理Enter・IME・DPIは未実施 |
-| Windows CI | 自動ビルド・契約テストの設定を追加。今回の実行結果はまだない |
+| Windows CI | [Windows Server 2022で成功](https://github.com/resume-rei/jev-teach-navigator/actions/runs/39168963545)。`./windows/build.ps1 -SelfTest`でアプリをビルドし、C#98件＋既存自己チェック、Node47件、静的確認が合格 |
+| Windows対話操作 | GUI起動、教示から一般アプリの実操作、物理Enter・IME・DPIは未実施 |
 | 実API・マイク | 使用0回。画像認識精度・実推論の遅延・費用は未測定 |
 
 ```powershell
 npm test
 npm run check
-# Windowsで実行する確認（今回のLinux検証では未実施）
+# Windowsで再現するビルド・自己テスト（CIで成功、実UIA・物理入力は使わない）
 ./windows/build.ps1 -SelfTest
 ```
 

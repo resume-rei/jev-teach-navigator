@@ -105,6 +105,6 @@ Webは架空申請の教示とschemaVersion 1を検証するfixtureである。�
 
 ## 検証方針
 
-今回の実行結果はNode 47、静的確認11モジュール、実UIAなしの純C# 98（runner 63 / semantic 27 / worker 8）合格。Microsoft .NET Framework 4.8参照を使ったLinuxクロスコンパイルも成功した。Windowsの `build.ps1 -SelfTest`、GUI・物理入力、Windows CIは今回まだ実行していない。
+今回の実行結果はNode 47、静的確認11モジュール、実UIAなしの純C# 98（runner 63 / semantic 27 / worker 8）合格。Microsoft .NET Framework 4.8参照を使ったLinuxクロスコンパイルも成功した。さらに[Windows Server 2022のCI](https://github.com/resume-rei/jev-teach-navigator/actions/runs/39168963545)で `build.ps1 -SelfTest`を実行し、実ビルドと同じ自己テスト・Nodeテストの成功を確認した。GUI・実UIA・物理入力の確認は未実施である。
 
 2026-10-15〜16の専用練習アプリ・Webの実機履歴は別の証拠である。一般アプリ、現在の新経路、Jev推論、マイク、DPIの実測結果へ読み替えない。次は [docs/WINDOWS_CHECKS.md](docs/WINDOWS_CHECKS.md)に従うWindows実機確認を行い、その後に未対応操作や画像・生成モデルの境界を拡張する。
