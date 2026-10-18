@@ -1,6 +1,8 @@
 # 参考コード・公式仕様・採否
 
-確認日: 2026-10-15。公開GitHub APIからHEADを取得し、以下のSHAのソースとLICENSE本文を読み取った。Xは閲覧していない。参考リポジトリのコードは実行・インストールしていない。
+参考コードの確認履歴: 2026-10-15。以下は当時の公開GitHub APIから取得したHEAD、ソース、LICENSE本文の記録で、今回そのHEADを再取得したという意味ではない。Xは閲覧していない。参考リポジトリのコードは実行・インストールしていない。
+
+公式契約の再確認・実装照合: 2026-10-18。画像/Box/Choice/NoulとWindows APIの一次資料を読み、模擬テストへ反映した。実API・課金・実データ送信、Windows実機操作は行っていない。
 
 | 参考 | 確認したHEAD | ライセンス / 読んだ実装 | 採用した考え方 |
 | --- | --- | --- | --- |
@@ -23,15 +25,26 @@ routerは既存スキルの推薦であり、教示からのスキル自動作�
 - [Skill suggestion](https://docs.typesafe.ai/cookbooks/skill_suggestion): 候補推薦の参考。教示スキル生成と区別。`buildSkillChoice`へ参考構造を反映。
 - [Choice](https://docs.typesafe.ai/primitives/choice): 最大255選択肢、確率分布とconfidence、独立質問。本試作は254候補+noneまで。
 - [Noul](https://docs.typesafe.ai/primitives/noul): yesの確率を`answers.<id>.noul`で受ける。独自confidenceを仮定しない。
-- [Box](https://docs.typesafe.ai/primitives/box): 1対象の正規化矩形、不在でも矩形が返る。`acceptBox`で存在/確信度/辺の順序を検査。
-- [Images](https://docs.typesafe.ai/images): PNG/JPEG静止、各辺256〜1568px、78,400〜2,458,624画素、画像16MiB、request/processed/expandedは各32MiB。UUIDのassetをstateへ一度だけ置く。画像数の固定上限を推測しない。本試作は1枚限定。
-- [Jev 1.14](https://typesafe.ai/blog/jev-1-14): 画像・Boxは実験的な位置付け。実運用精度の保証として扱わない。
+- [Box](https://docs.typesafe.ai/primitives/box): 1対象の正規化矩形、不在でも矩形が返り得る。存在Noulとnone/one/severalのChoiceで一意性を検査し、`acceptBox`で存在/確信度/有限値/辺順/範囲を検査。Boxのconfidenceだけで対象の存在を保証しない。
+- [Images](https://docs.typesafe.ai/images): PNG/JPEG静止、各辺280〜1568px、78,400〜2,458,624画素、画像16MiB、request/processed/expandedは各32MiB。UUIDのassetをstateへ一度だけ置く。画像数の固定上限を推測しない。本試作は1枚限定。
+- [Jev 1.14](https://typesafe.ai/blog/jev-1-14): 以前参照したリリース説明。現在のImages/Box公式ページも画像・Boxを実験的な位置付けとしており、実運用精度の保証として扱わない。
 
-Boxの公式ページは`jev-preview` / `jev-1.14.0`を明示。固定モデルを採用。画像には`TypeSafe-Danger-Zone-Images: true`。エンドポイントは`https://api.typesafe.ai/v1/systemone`。Choiceを先に実行して初めて分かる対象は後続のBoxリクエストに渡す。独立質問の並列評価を逐次処理とみなさない。
+Boxの公式ページは`jev-preview` / `jev-1.14.0`を明示。固定モデルを採用。画像またはBoxを使う場合には`TypeSafe-Danger-Zone-Images: true`。エンドポイントは`https://api.typesafe.ai/v1/systemone`。Choiceを先に実行して初めて分かる対象は後続のBoxリクエストに渡す。独立質問の並列評価を逐次処理とみなさない。
 
 - [OpenAI Structured Outputs / JSON mode](https://developers.openai.com/api/docs/guides/structured-outputs): Responses APIの`text.format.type=json_object`を確認。モデル固有の対応やアカウント権限は未確認。Lunaの公開API名は決めていない。ローカル検証に失敗した出力を採用しない。
 - [AutomationElement.FromPoint](https://learn.microsoft.com/en-us/dotnet/api/system.windows.automation.automationelement.frompoint?view=windowsdesktop-8.0): 物理画面座標、UIAスレッドの注意を反映。
 - [Extended Window Styles](https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles): overlayのtransparent/no-activate/toolwindow。
 - [SpeechRecognitionEngine](https://learn.microsoft.com/en-us/dotnet/api/system.speech.recognition.speechrecognitionengine?view=netframework-4.8.1): 端末内の認識エンジン、明示開始・停止・Dispose。
 
-この記録は公開資料の確認結果。モデル推論、Windowsマウスフック、マイク、DPIの実測結果ではない。
+- [KBDLLHOOKSTRUCT](https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-kbdllhookstruct): 注入フラグとキー離上を区別する。一般アプリ承認で注入イベントを物理キーのラッチ更新に使わないための根拠。
+- [SetWinEventHook](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwineventhook): ウィンドウ破棄通知、out-of-context配信、メッセージループの条件。登録ウィンドウの寿命管理へ反映。
+- [UI Automation Threading Issues](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/ui-automation-threading-issues): UIA呼出をGUIスレッドから分離する根拠。専用MTAと待機境界の設計へ反映。
+- [Value Control Pattern](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/implementing-the-ui-automation-value-control-pattern): `ValuePattern`と読み取り専用の条件。入力全文を1操作で設定し、値を読み戻せない場合は成功を推測しない。
+
+## 今回の契約確認と検証の区別
+
+[公式契約レビュー](JEV_CONTRACT_REVIEW.md)に、質問の独立性、Boxの不在・複数、画像最小辺280、ヘッダー、モデル、ローカル事前検査の限界と模擬テストを記載した。Imagesのメタデータ除去・EXIF方向の扱いも、現在画像と画面座標の対応を維持する際の前提である。
+
+今回のNodeテストは47件で、provider/coreの模擬契約はそのうち44件。純C# 98件とMicrosoft net48参照によるLinuxクロスコンパイルは、UIA・キーフック・マイク・DPIの実測ではない。新しいWindows CIは設定追加のみで実行待ち。[Windows実機チェック表](WINDOWS_CHECKS.md)の項目は今回全て未実施。
+
+この記録は公開資料の確認とコード契約の検証結果であり、モデル推論や一般アプリの動作確認結果ではない。実API・課金・実データの外部送信が必要になった時点で利用者の確認を受ける。

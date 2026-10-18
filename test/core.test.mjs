@@ -20,5 +20,18 @@ test('期限切れ・取消済みの提案は実行しない',async()=>{let now=
 test('入力案は一操作で入力し、別承認なしに送信しない',async()=>{const a=fakeAdapter(),g=new Guide(a);g.start(lesson({full:true}),{p1:'備品A',p2:'必要な理由'});let p=g.propose();await g.approve(p.id);assert.equal(g.state,'ready');assert.equal(await g.approve(p.id),false);p=g.propose();assert.equal(p.value,'備品A');await g.approve(p.id);assert.equal(a.calls,2);assert.equal(a.state.screen,'form');assert.equal(a.state.candidates[0].value,'備品A');assert.equal(g.stepIndex,2);});
 test('入力値不足は提案しない',async()=>{const a=fakeAdapter(),g=new Guide(a);g.start(lesson({full:true}));await g.approve(g.propose().id);assert.throws(()=>g.propose(),/入力案/);assert.equal(a.calls,1);});
 test('遷移失敗と実行後の観測エラーは結果不明で停止し再実行しない',async()=>{for(const throws of [false,true]){const a=fakeAdapter(),g=new Guide(a);g.start(lesson());a.fail=true;if(throws)a.waitForResult=async()=>{throw new Error('観測不能');};await g.approve(g.propose().id);assert.equal(g.state,'unknown');assert.equal(a.calls,1);assert.throws(()=>g.propose());assert.equal(await g.approve('anything'),false);}});
-test('Boxは存在確認・確信度・座標が有効なときだけ採用',()=>{const image={width:1000,height:800},answer={present:{noul:.99},target:{confidence:.99,box:{left:.1,top:.2,right:.3,bottom:.4}}};assert.equal(acceptBox(answer,image).status,'found');for(const noul of [0,.5,NaN,undefined,1.1])assert.notEqual(acceptBox({...answer,present:{noul}},image).status,'found');assert.equal(acceptBox({...answer,target:{...answer.target,box:{left:.3,top:.4,right:.1,bottom:.2}}},image).status,'invalid');});
+test('Boxは存在確認・確信度・座標が有効なときだけ採用',()=>{const image={width:1000,height:800},answer={present:{type:'noul',noul:.99},target:{type:'box',confidence:.99,box:{left:.1,top:.2,right:.3,bottom:.4}}};assert.equal(acceptBox(answer,image).status,'found');for(const noul of [0,.5,NaN,undefined,1.1])assert.notEqual(acceptBox({...answer,present:{type:'noul',noul}},image).status,'found');assert.equal(acceptBox({...answer,target:{...answer.target,box:{left:.3,top:.4,right:.1,bottom:.2}}},image).status,'invalid');});
 test('cropされたBoxを元画像へ戻し、領域一致を測れる',()=>{const rect=boxRect({left:.25,top:0,right:.75,bottom:1},{width:500,height:500},{x:100,y:200,width:400,height:300});assert.deepEqual(rect,{x:200,y:200,width:200,height:300});assert.equal(iou(rect,rect),1);assert.equal(iou(rect,{x:0,y:0,width:10,height:10}),0);});
+test('Box位置変換は負の原点を保ち、寸法欠落・非有限値・逆寸法・overflowを拒否する',()=>{
+  const box={left:0,top:0,right:1,bottom:1},image={width:500,height:500};
+  assert.deepEqual(boxRect(box,image,{x:-1920,y:-1080,width:500,height:500}),{x:-1920,y:-1080,width:500,height:500});
+  for(const bad of [null,{}, {...image,width:0},{...image,height:NaN},{...image,width:Infinity},{...image,width:1.5}])assert.throws(()=>boxRect(box,bad));
+  for(const crop of [null,{}, {x:0,y:0,width:-1,height:500},{x:NaN,y:0,width:500,height:500},{x:0,y:Infinity,width:500,height:500},{x:0,y:0,width:500,height:0},{x:Number.MAX_VALUE,y:0,width:Number.MAX_VALUE,height:500}])assert.throws(()=>boxRect(box,image,crop));
+});
+test('不正なBox閾値・応答型・位置変換はfoundにならない',()=>{
+  const answer={present:{type:'noul',noul:.99},target:{type:'box',confidence:.99,box:{left:0,top:0,right:1,bottom:1}}},image={width:500,height:500};
+  for(const threshold of [NaN,Infinity,-.1,1.1])assert.equal(acceptBox(answer,image,undefined,threshold).status,'invalid');
+  assert.equal(acceptBox({...answer,present:{noul:.99}},image).status,'invalid');
+  assert.equal(acceptBox({...answer,target:{...answer.target,type:'noul'}},image).status,'invalid');
+  assert.equal(acceptBox(answer,image,{x:0,y:0,width:NaN,height:100}).status,'invalid');
+});
