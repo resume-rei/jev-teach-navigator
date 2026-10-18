@@ -38,8 +38,9 @@ namespace JevTeachWindows {
     public string Semantic {get{return Role+"|"+Label+"|"+AutomationId+"|"+Context;}}
     public override string ToString(){return Role+" · "+Label+" / "+Context;}
   }
+  sealed class SensitiveMetadataException : InvalidOperationException { public SensitiveMetadataException(string message) : base(message) { } }
   static class Uia {
-    public static string Clean(string s) {s=s??"";if(Regex.IsMatch(s,@"password|passwd|api.?key|secret|パスワード|暗証番号|認証コード|秘密鍵|sk-[\w-]{10,}|gh[pousr]_[\w]{10,}",RegexOptions.IgnoreCase))throw new InvalidOperationException("認証情報らしい文字列は記録しません。");return s.Length>300?s.Substring(0,300):s;}
+    public static string Clean(string s) {s=s??"";if(Regex.IsMatch(s,@"password|passwd|api.?key|secret|パスワード|暗証番号|認証コード|秘密鍵|sk-[\w-]{10,}|gh[pousr]_[\w]{10,}",RegexOptions.IgnoreCase))throw new SensitiveMetadataException("認証情報らしい文字列は記録しません。");if(s.Length>500)throw new InvalidOperationException("UIAの意味記述が長すぎるため保留します。短縮して別対象と同一視しません。");return s;}
     public static Candidate Read(AutomationElement e,int pid) {
       var c=e.Current;if(c.ProcessId!=pid||c.IsPassword||c.IsOffscreen||c.BoundingRectangle.IsEmpty)return null;
       if(c.ControlType!=ControlType.Button&&c.ControlType!=ControlType.Edit&&c.ControlType!=ControlType.CheckBox&&c.ControlType!=ControlType.ComboBox)return null;
@@ -72,7 +73,8 @@ namespace JevTeachWindows {
     public Overlay(){FormBorderStyle=FormBorderStyle.None;ShowInTaskbar=false;TopMost=true;BackColor=Color.Fuchsia;TransparencyKey=Color.Fuchsia;DoubleBuffered=true;Enabled=false;}
     protected override bool ShowWithoutActivation {get{return true;}}
     protected override CreateParams CreateParams {get{var p=base.CreateParams;p.ExStyle|=0x20|0x80000|0x8000000|0x80;return p;}}
-    public void Aim(Rectangle r,bool isArrow){highlight=new Rectangle(55,12,r.Width,r.Height);Bounds=new Rectangle(r.Left-55,r.Top-12,r.Width+72,r.Height+25);arrow=isArrow;Show();Invalidate();}
+    public void Aim(Rectangle r,bool isArrow){highlight=new Rectangle(55,12,r.Width,r.Height);arrow=isArrow;Native.SetWindowPos(Handle,new IntPtr(-1),r.Left-55,r.Top-12,r.Width+72,r.Height+25,0x10|0x40);Invalidate();}
+    public new void Hide(){if(IsHandleCreated)Native.ShowWindow(Handle,0);}
     protected override void OnPaint(PaintEventArgs e){base.OnPaint(e);e.Graphics.SmoothingMode=System.Drawing.Drawing2D.SmoothingMode.AntiAlias;using(var pen=new Pen(arrow?Color.Firebrick:Color.Goldenrod,3)){e.Graphics.DrawRectangle(pen,highlight);if(arrow){pen.EndCap=System.Drawing.Drawing2D.LineCap.ArrowAnchor;pen.Width=6;e.Graphics.DrawLine(pen,5,highlight.Top+highlight.Height/2,50,highlight.Top+highlight.Height/2);}else e.Graphics.DrawString("✦",new Font("Segoe UI",14),Brushes.Goldenrod,highlight.Right-5,0);}}
   }
   class WindowChoice {public IntPtr Handle;public int Pid;public string Name;public override string ToString(){return Name+" ["+Pid+"]";}}
@@ -138,7 +140,7 @@ namespace JevTeachWindows {
   }
   static class Program {
     [STAThread] static int Main(string[] args){
-      if(args.Contains("--self-test")){var a=new Candidate{Label="申請",Role="Button",AutomationId="apply",Context="備品",Enabled=true,Bounds=new Rectangle(-100,30,60,40)};if(Uia.Resolve(a,new List<Candidate>{a}).Bounds.X!=-100)return 1;try{Uia.Resolve(a,new List<Candidate>{a,a});return 2;}catch(InvalidOperationException){}try{Uia.Clean("password=secret");return 3;}catch(InvalidOperationException){}Console.WriteLine("PASS: semantic match, ambiguous hold, negative coordinates, credential rejection.");try{DesktopEngineTests.Run().GetAwaiter().GetResult();}catch(Exception ex){Console.Error.WriteLine(ex);return 4;}return 0;}
+      if(args.Contains("--self-test")){var a=new Candidate{Label="申請",Role="Button",AutomationId="apply",Context="備品",Enabled=true,Bounds=new Rectangle(-100,30,60,40)};if(Uia.Resolve(a,new List<Candidate>{a}).Bounds.X!=-100)return 1;try{Uia.Resolve(a,new List<Candidate>{a,a});return 2;}catch(InvalidOperationException){}try{Uia.Clean("password=secret");return 3;}catch(InvalidOperationException){}Console.WriteLine("PASS: semantic match, ambiguous hold, negative coordinates, credential rejection.");try{DesktopEngineTests.Run().GetAwaiter().GetResult();NativeSkillTests.Run();UiaWorkerTests.Run().GetAwaiter().GetResult();}catch(Exception ex){Console.Error.WriteLine(ex);return 4;}return 0;}
       try{Native.SetProcessDpiAwarenessContext(new IntPtr(-4));}catch(EntryPointNotFoundException){}
       Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
       if(args.Contains("--fixture"))Application.Run(new Fixture());
