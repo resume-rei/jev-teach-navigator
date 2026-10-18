@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Jev Teach Navigator</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+  <header class="top"><a class="brand" href="/" aria-label="Jev Teach Navigator ホーム"><span class="brand-mark">↗</span><span>Jev <strong>Teach Navigator</strong></span></a><div class="header-tools"><button id="text-size" class="quiet" aria-pressed="false">文字 100%</button><span class="environment">ローカル試作 · MOCK</span></div></header>
+  <main>
+    <div class="intro"><div><p class="eyebrow">教えて、次の操作へ。</p><h1>いつもの操作を、あなたの手順に。</h1></div><div id="capture-status" class="capture" role="status">■ 記録停止中 <small>画面録画・録音なし</small></div></div>
+    <nav class="modes" aria-label="モード"><button id="mode-teach" aria-pressed="true">01 教える</button><button id="mode-guide" aria-pressed="false">02 案内してもらう</button><button id="mode-library" aria-pressed="false">保存したスキル <span id="skill-count">0</span></button></nav>
+    <div id="notice" role="status" aria-live="polite">まず「教えるモードを開始」を押して、左の架空画面を操作してください。</div>
+    <div class="workspace" id="work-area">
+      <section class="practice" aria-label="架空の申請アプリ">
+        <div class="practice-top"><span><span class="tiny-dot"></span> 練習用アプリ</span><span>架空データだけで試せます</span></div>
+        <div class="fixture-toolbar"><strong>つむぎ総務</strong><button id="reset-screen" class="quiet">一覧へ戻す</button></div>
+        <div id="stage" class="stage" data-screen="list"></div>
+        <details class="lab"><summary>画面の変化を試す</summary><div class="lab-options"><label><input id="move-target" type="checkbox">配置を変える</label><label><input id="duplicate-target" type="checkbox">同名の候補を増やす</label><label><input id="hide-target" type="checkbox">対象を隠す</label><label><input id="disable-target" type="checkbox">対象を無効にする</label><label><input id="fail-transition" type="checkbox">遷移失敗</label></div><p>変更後は「現在の画面から提案」で探し直します。同じ文脈の同名候補が複数なら保留します。</p></details>
+      </section>
+      <aside class="navigator" aria-label="ナビゲーター">
+        <section id="teach-panel">
+          <p class="eyebrow">TEACH / 操作と意味を記録</p><h2>横で教えるように。</h2><p class="muted">左クリックは普段の操作。右クリックは「ここ」を指すだけです。</p>
+          <label for="skill-name">手順の名前</label><input id="skill-name" value="備品を申請する" maxlength="120">
+          <button id="start-teach" class="primary full">教えるモードを開始</button><button id="stop-teach" class="stop full" disabled>記録を停止して保存</button>
+          <div class="lesson"><div class="section-label">説明するもの</div><p id="selected-target">現在の画面（対象のクリックは不要）</p><button id="describe-screen" class="quiet" disabled>画面全体の説明に切り替え</button>
+          <label for="explanation">声の代わりに文字で教える</label><textarea id="explanation" rows="3" placeholder="これは申請ボタン / ここは毎回変わる / ここが確認画面" disabled></textarea>
+          <label class="check"><input id="completion" type="checkbox" disabled>この画面を手順の完了条件にする</label><button id="record-explanation" class="secondary full" disabled>説明を記録</button></div>
+          <div class="record-heading"><h3>今回の記録</h3><span id="event-count">0件</span></div><ol id="timeline" class="timeline"><li class="muted">開始するまで記録しません。</li></ol>
+          <details class="instructions"><summary>はじめての一周</summary><ol><li>教えるモードを開始。</li><li>「申請する」を右クリックして説明し、左クリック。</li><li>件名・理由を入力して、確認画面へ進む。</li><li>「ここが確認画面」と記録し、申請を送信。</li><li>完了画面を説明し、完了条件にチェック。</li><li>停止して保存 → 案内モードで依頼。</li></ol><p>対象指定はフォーカスして Shift+F10 でもできます。任意の右ドラッグは参考領域として残ります。</p></details>
+        </section>
+        <section id="guide-panel" hidden>
+          <p class="eyebrow">GUIDE / 1操作ずつ確認</p><h2>次は、案内に沿って。</h2><label for="request">やりたいこと</label><textarea id="request" rows="2">備品を申請したい</textarea><button id="find-skill" class="primary full">使うスキルを探す</button><p id="route-result" class="muted">保存した手順から選びます。</p>
+          <div id="guide-progress" class="section-label"></div>
+          <button id="propose" class="secondary full" disabled>現在の画面から提案</button>
+          <div id="approval-zone" tabindex="0" class="approval" aria-label="案内の承認エリア。Enterで提示した1操作だけ実行">
+            <span class="eyebrow">次の1操作</span><p id="proposal-label">提案を待っています。</p><pre id="input-preview" hidden></pre><div id="enter-hint"><kbd>Enter</kbd> で実行 · <kbd>Esc</kbd> で取消</div>
+          </div>
+          <p id="guide-status" role="status" class="muted">赤い矢印と内容を確認してから承認してください。</p>
+          <details id="draft-details"><summary>入力案を確認・修正する</summary><div id="parameters"></div></details>
+          <button id="stop-guide" class="quiet full">案内を終了</button>
+        </section>
+      </aside>
+    </div>
+    <section id="library-panel" class="library" hidden><div><p class="eyebrow">LIBRARY / この端末のスキル</p><h2>覚えた手順を、育てる。</h2><p class="muted">修正は新しい版として保存します。以前の版もローカルに残ります。</p></div><div id="skill-list"></div><section id="editor-panel" hidden><h3 id="editor-title">スキルを修正</h3><label for="skill-editor">スキル JSON（意味・依頼例・手順・完了条件）</label><textarea id="skill-editor" spellcheck="false" rows="20"></textarea><button id="save-edit" class="primary">修正を保存</button><button id="close-edit" class="quiet">閉じる</button></section></section>
+    <footer><span>外部API呼出なし · 手順はこの端末へ保存</span><span>音声・Windows連携は別の検証段階</span></footer>
+  </main>
+  <div id="highlight" class="highlight" hidden aria-hidden="true"><span>✦</span></div><div id="arrow" class="arrow" hidden aria-hidden="true">➜</div>
+  <script type="module" src="/app.mjs"></script>
+</body></html>
